@@ -41,3 +41,14 @@ env/
 # -----------------------------
 .DS_Store
 Thumbs.db
+
+# -----------------------------
+# ML Models (machine-specific)
+# -----------------------------
+models/model.pkl
+models/shap_explainer.pkl
+
+# -----------------------------
+# Data (too large for GitHub)
+# -----------------------------
+data/
