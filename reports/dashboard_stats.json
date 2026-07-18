@@ -1,0 +1,17 @@
+{
+  "total_employees": 1470,
+  "attrition_count": 237,
+  "attrition_pct": 16.1,
+  "avg_monthly_income": 6503.0,
+  "avg_experience": 11.3,
+  "avg_age": 36.9,
+  "gender_ratio": {
+    "Male": 882,
+    "Female": 588
+  },
+  "dept_counts": {
+    "Research & Development": 961,
+    "Sales": 446,
+    "Human Resources": 63
+  }
+}

@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Predict Attrition — HR Analytics</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-base   : #0B1120;
+      --bg-card   : #131E30;
+      --bg-card2  : #1A2740;
+      --border    : #1F3050;
+      --indigo    : #6366F1;
+      --emerald   : #10B981;
+      --rose      : #F43F5E;
+      --amber     : #F59E0B;
+      --cyan      : #06B6D4;
+      --purple    : #A855F7;
+      --text-1    : #F1F5F9;
+      --text-2    : #94A3B8;
+      --text-3    : #475569;
+      --radius    : 14px;
+      --radius-sm : 8px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-base); color: var(--text-1); min-height: 100vh; display: flex; }
+
+    /* ── Sidebar (same as dashboard) ── */
+    .sidebar { width:220px; min-height:100vh; background:var(--bg-card); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:28px 0; position:fixed; top:0; left:0; z-index:100; }
+    .sidebar-logo { padding:0 24px 28px; border-bottom:1px solid var(--border); }
+    .sidebar-logo .logo-icon { width:36px; height:36px; background:var(--indigo); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:10px; }
+    .sidebar-logo h1 { font-size:14px; font-weight:700; letter-spacing:.02em; }
+    .sidebar-logo p { font-size:11px; color:var(--text-2); margin-top:2px; }
+    .sidebar-nav { padding:20px 12px; display:flex; flex-direction:column; gap:4px; }
+    .nav-label { font-size:10px; font-weight:600; color:var(--text-3); letter-spacing:.1em; text-transform:uppercase; padding:10px 12px 6px; }
+    .nav-link { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:var(--radius-sm); text-decoration:none; color:var(--text-2); font-size:13.5px; font-weight:500; transition:all .15s; }
+    .nav-link:hover { background:var(--bg-card2); color:var(--text-1); }
+    .nav-link.active { background:rgba(99,102,241,.15); color:var(--indigo); }
+    .nav-link .icon { font-size:16px; width:20px; text-align:center; }
+
+    /* ── Main layout ── */
+    .main { margin-left:220px; flex:1; padding:32px 36px; max-width:calc(100vw - 220px); }
+    .page-header { margin-bottom:28px; }
+    .page-header h2 { font-size:22px; font-weight:700; }
+    .page-header p { font-size:13px; color:var(--text-2); margin-top:3px; }
+
+    .section-title { font-size:11px; font-weight:700; color:var(--text-3); letter-spacing:.1em; text-transform:uppercase; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+    .section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* ── Two-column layout ── */
+    .predict-layout { display:grid; grid-template-columns:400px 1fr; gap:24px; align-items:start; }
+
+    /* ── Form card ── */
+    .form-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:28px; position:sticky; top:28px; }
+    .form-card h3 { font-size:15px; font-weight:700; margin-bottom:6px; }
+    .form-card p { font-size:12px; color:var(--text-2); margin-bottom:24px; }
+
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-group.full { grid-column:span 2; }
+
+    label { font-size:11px; font-weight:600; color:var(--text-2); letter-spacing:.04em; text-transform:uppercase; }
+
+    input, select {
+      background    : var(--bg-card2);
+      border        : 1px solid var(--border);
+      border-radius : var(--radius-sm);
+      color         : var(--text-1);
+      font-size     : 13px;
+      padding       : 10px 12px;
+      width         : 100%;
+      transition    : border-color .15s;
+      outline       : none;
+      font-family   : inherit;
+    }
+    input:focus, select:focus { border-color:var(--indigo); }
+    select option { background:var(--bg-card2); }
+
+    /* Slider inputs */
+    .slider-group { display:flex; flex-direction:column; gap:6px; }
+    .slider-row { display:flex; align-items:center; gap:10px; }
+    input[type=range] {
+      flex:1; height:4px; appearance:none; background:var(--border);
+      border-radius:4px; padding:0; border:none; cursor:pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      appearance:none; width:16px; height:16px;
+      background:var(--indigo); border-radius:50%; cursor:pointer;
+    }
+    .slider-val { font-size:13px; font-weight:700; color:var(--indigo); width:24px; text-align:center; }
+
+    /* Slider labels */
+    .slider-labels { display:flex; justify-content:space-between; font-size:9px; color:var(--text-3); margin-top:2px; }
+
+    /* Predict button */
+    .btn-predict {
+      width:100%; margin-top:24px; padding:14px;
+      background:var(--indigo); color:#fff; border:none;
+      border-radius:var(--radius-sm); font-size:14px; font-weight:700;
+      cursor:pointer; transition:all .2s; letter-spacing:.02em;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .btn-predict:hover { background:#4F46E5; transform:translateY(-1px); box-shadow:0 8px 24px rgba(99,102,241,.3); }
+    .btn-predict:active { transform:translateY(0); }
+    .btn-predict:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+
+    /* ── Results column ── */
+    .results-col { display:flex; flex-direction:column; gap:20px; }
+
+    /* Prediction result card */
+    .result-card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--radius); padding:24px;
+      display:none; opacity:0; transform:translateY(12px);
+      transition:all .4s ease;
+    }
+    .result-card.visible { display:block; }
+    .result-card.shown { opacity:1; transform:translateY(0); }
+
+    .result-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .result-header h3 { font-size:14px; font-weight:700; color:var(--text-2); text-transform:uppercase; letter-spacing:.06em; }
+
+    .risk-badge { padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700; letter-spacing:.04em; }
+    .risk-low    { background:rgba(16,185,129,.15);  color:var(--emerald); border:1px solid rgba(16,185,129,.3); }
+    .risk-medium { background:rgba(245,158,11,.15);  color:var(--amber);   border:1px solid rgba(245,158,11,.3); }
+    .risk-high   { background:rgba(244,63,94,.15);   color:var(--rose);    border:1px solid rgba(244,63,94,.3); }
+
+    .prediction-big { display:flex; align-items:center; gap:24px; }
+    .pred-label { font-size:42px; font-weight:900; line-height:1; letter-spacing:-.03em; }
+    .pred-stay  { color:var(--emerald); }
+    .pred-leave { color:var(--rose); }
+
+    .prob-section { flex:1; }
+    .prob-pct { font-size:28px; font-weight:800; color:var(--text-1); font-variant-numeric:tabular-nums; }
+    .prob-label { font-size:12px; color:var(--text-2); margin-top:2px; }
+
+    .prob-bar-wrap { margin-top:12px; height:8px; background:var(--border); border-radius:8px; overflow:hidden; }
+    .prob-bar { height:100%; border-radius:8px; transition:width 1s ease; background:var(--rose); }
+    .prob-bar.stay { background:var(--emerald); }
+
+    /* Generic section card */
+    .section-card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--radius); padding:24px;
+    }
+    .section-card h3 { font-size:14px; font-weight:700; margin-bottom:4px; }
+    .section-card .sub { font-size:12px; color:var(--text-2); margin-bottom:18px; }
+
+    /* SHAP chart */
+    .shap-chart-wrap { position:relative; height:220px; }
+
+    /* Feature importance */
+    .fi-chart-wrap { position:relative; height:320px; }
+
+    /* Recommendations */
+    .rec-list { display:flex; flex-direction:column; gap:12px; }
+    .rec-item {
+      background:var(--bg-card2); border:1px solid var(--border);
+      border-radius:var(--radius-sm); padding:14px 16px;
+      border-left:3px solid var(--amber);
+    }
+    .rec-item .rec-feature { font-size:10px; font-weight:700; color:var(--amber); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; }
+    .rec-item .rec-title { font-size:13px; font-weight:700; color:var(--text-1); margin-bottom:4px; }
+    .rec-item .rec-detail { font-size:12px; color:var(--text-2); line-height:1.6; }
+
+    /* Cost calculator */
+    .cost-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+    .cost-stat { background:var(--bg-card2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; }
+    .cost-stat .cost-label { font-size:10px; font-weight:600; color:var(--text-2); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
+    .cost-stat .cost-val { font-size:20px; font-weight:800; color:var(--text-1); font-variant-numeric:tabular-nums; }
+    .cost-total { background:rgba(244,63,94,.08); border:1px solid rgba(244,63,94,.25); border-radius:var(--radius-sm); padding:16px; display:flex; align-items:center; justify-content:space-between; }
+    .cost-total .label { font-size:12px; font-weight:600; color:var(--text-2); }
+    .cost-total .value { font-size:24px; font-weight:900; color:var(--rose); font-variant-numeric:tabular-nums; }
+
+    .cost-breakdown { margin-top:14px; display:flex; flex-direction:column; gap:8px; }
+    .cb-row { display:flex; align-items:center; justify-content:space-between; font-size:12px; }
+    .cb-row .cb-label { color:var(--text-2); }
+    .cb-row .cb-val { color:var(--text-1); font-weight:600; font-variant-numeric:tabular-nums; }
+    .cb-bar-wrap { height:3px; background:var(--border); border-radius:3px; margin-top:3px; overflow:hidden; }
+    .cb-bar { height:100%; background:var(--rose); border-radius:3px; transition:width .8s ease; opacity:.6; }
+
+    /* Download btn */
+    .btn-download {
+      width:100%; padding:14px; background:transparent;
+      color:var(--text-1); border:1px solid var(--border);
+      border-radius:var(--radius-sm); font-size:14px; font-weight:600;
+      cursor:pointer; transition:all .2s; display:flex;
+      align-items:center; justify-content:center; gap:8px;
+      font-family:inherit;
+    }
+    .btn-download:hover { border-color:var(--indigo); color:var(--indigo); background:rgba(99,102,241,.06); }
+
+    /* Loading spinner */
+    .spinner {
+      width:16px; height:16px;
+      border:2px solid rgba(255,255,255,.3);
+      border-top-color:#fff; border-radius:50%;
+      animation:spin .7s linear infinite;
+      display:none;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Empty state */
+    .empty-state { text-align:center; padding:32px 16px; color:var(--text-3); }
+    .empty-state .icon { font-size:32px; margin-bottom:10px; }
+    .empty-state p { font-size:13px; }
+
+    ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:var(--bg-base)} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">📊</div>
+    <h1>HR Analytics</h1>
+    <p>Attrition Intelligence</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Overview</div>
+    <a href="/" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="/predict" class="nav-link active"><span class="icon">🔮</span> Predict</a>
+    <div class="nav-label" style="margin-top:12px">Modules</div>
+    <a href="#form-section"  class="nav-link"><span class="icon">📋</span> Prediction Form</a>
+    <a href="#shap-section"  class="nav-link"><span class="icon">🔍</span> Explainable AI</a>
+    <a href="#fi-section"    class="nav-link"><span class="icon">📊</span> Feature Importance</a>
+    <a href="#rec-section"   class="nav-link"><span class="icon">💡</span> Recommendations</a>
+    <a href="#cost-section"  class="nav-link"><span class="icon">💰</span> Cost Calculator</a>
+    <a href="#dl-section"    class="nav-link"><span class="icon">📄</span> Download Report</a>
+  </nav>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="page-header">
+    <h2>Employee Attrition Predictor</h2>
+    <p>Fill in the employee profile → get prediction, explanation, and HR recommendations</p>
+  </div>
+
+  <div class="predict-layout">
+
+    <!-- ══════════════════════════════
+         LEFT: Module 3 — Prediction Form
+    ══════════════════════════════ -->
+    <div id="form-section">
+      <div class="form-card">
+        <h3>Employee Profile</h3>
+        <p>Fill the details below and click Predict to run the model.</p>
+
+        <div class="form-grid">
+
+          <!-- Age -->
+          <div class="form-group">
+            <label>Age</label>
+            <input type="number" id="f_age" value="35" min="18" max="65"/>
+          </div>
+
+          <!-- Gender -->
+          <div class="form-group">
+            <label>Gender</label>
+            <select id="f_gender">
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+          </div>
+
+          <!-- Department -->
+          <div class="form-group full">
+            <label>Department</label>
+            <select id="f_department">
+              <option>Sales</option>
+              <option>Research &amp; Development</option>
+              <option>Human Resources</option>
+            </select>
+          </div>
+
+          <!-- Job Role -->
+          <div class="form-group full">
+            <label>Job Role</label>
+            <select id="f_job_role">
+              <option>Sales Executive</option>
+              <option>Research Scientist</option>
+              <option>Laboratory Technician</option>
+              <option>Manufacturing Director</option>
+              <option>Healthcare Representative</option>
+              <option>Manager</option>
+              <option>Sales Representative</option>
+              <option>Research Director</option>
+              <option>Human Resources</option>
+            </select>
+          </div>
+
+          <!-- Monthly Income -->
+          <div class="form-group full">
+            <label>Monthly Income (₹)</label>
+            <input type="number" id="f_income" value="5000" min="1000" max="20000"/>
+          </div>
+
+          <!-- Overtime -->
+          <div class="form-group full">
+            <label>Overtime</label>
+            <select id="f_overtime">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+
+          <!-- Job Satisfaction slider -->
+          <div class="form-group full slider-group">
+            <label>Job Satisfaction</label>
+            <div class="slider-row">
+              <input type="range" id="f_job_sat" min="1" max="4" value="3"
+                     oninput="document.getElementById('lbl_job_sat').textContent=this.value"/>
+              <span class="slider-val" id="lbl_job_sat">3</span>
+            </div>
+            <div class="slider-labels"><span>Low</span><span>Medium</span><span>High</span><span>Very High</span></div>
+          </div>
+
+          <!-- Environment Satisfaction slider -->
+          <div class="form-group full slider-group">
+            <label>Environment Satisfaction</label>
+            <div class="slider-row">
+              <input type="range" id="f_env_sat" min="1" max="4" value="3"
+                     oninput="document.getElementById('lbl_env_sat').textContent=this.value"/>
+              <span class="slider-val" id="lbl_env_sat">3</span>
+            </div>
+            <div class="slider-labels"><span>Low</span><span>Medium</span><span>High</span><span>Very High</span></div>
+          </div>
+
+          <!-- Work Life Balance slider -->
+          <div class="form-group full slider-group">
+            <label>Work-Life Balance</label>
+            <div class="slider-row">
+              <input type="range" id="f_wlb" min="1" max="4" value="3"
+                     oninput="document.getElementById('lbl_wlb').textContent=this.value"/>
+              <span class="slider-val" id="lbl_wlb">3</span>
+            </div>
+            <div class="slider-labels"><span>Bad</span><span>Good</span><span>Better</span><span>Best</span></div>
+          </div>
+
+          <!-- Years at Company -->
+          <div class="form-group">
+            <label>Years at Company</label>
+            <input type="number" id="f_years" value="5" min="0" max="40"/>
+          </div>
+
+          <!-- Distance from Home -->
+          <div class="form-group">
+            <label>Distance (km)</label>
+            <input type="number" id="f_distance" value="10" min="1" max="100"/>
+          </div>
+
+        </div><!-- /form-grid -->
+
+        <button class="btn-predict" id="predictBtn" onclick="runPrediction()">
+          <div class="spinner" id="spinner"></div>
+          <span id="btnText">🔮 Predict Attrition</span>
+        </button>
+
+      </div><!-- /form-card -->
+    </div><!-- /form-section -->
+
+
+    <!-- ══════════════════════════════
+         RIGHT: Results
+    ══════════════════════════════ -->
+    <div class="results-col">
+
+      <!-- Prediction result (Module 3 output) -->
+      <div class="result-card" id="resultCard">
+        <div class="result-header">
+          <h3>Prediction Result</h3>
+          <span class="risk-badge" id="riskBadge">—</span>
+        </div>
+        <div class="prediction-big">
+          <div class="pred-label" id="predLabel">—</div>
+          <div class="prob-section">
+            <div class="prob-pct" id="probPct">—%</div>
+            <div class="prob-label">probability of leaving</div>
+            <div class="prob-bar-wrap">
+              <div class="prob-bar" id="probBar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module 4 — Explainable AI (SHAP) -->
+      <div class="result-card section-card" id="shapCard">
+        <div id="shap-section">
+          <h3>🔍 Explainable AI — Why this prediction?</h3>
+          <p class="sub">SHAP values show how much each factor pushed the prediction above or below the base attrition rate of 16.1%. Positive = increases risk, Negative = decreases risk.</p>
+          <div class="shap-chart-wrap">
+            <canvas id="shapChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module 6 — Recommendations -->
+      <div class="result-card section-card" id="recCard">
+        <div id="rec-section">
+          <h3>💡 HR Recommendations</h3>
+          <p class="sub">Targeted actions based on this employee's top attrition risk factors.</p>
+          <div class="rec-list" id="recList">
+            <div class="empty-state"><div class="icon">💡</div><p>Recommendations will appear after prediction.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module 5 — Feature Importance (always visible, loads on page load) -->
+      <div class="section-card" id="fi-section">
+        <h3>📊 Feature Importance</h3>
+        <p class="sub">Global importance scores — which features matter most for attrition prediction across all employees (XGBoost gain-based).</p>
+        <div class="fi-chart-wrap">
+          <canvas id="fiChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Module 7 — Cost Calculator -->
+      <div class="result-card section-card" id="costCard">
+        <div id="cost-section">
+          <h3>💰 Attrition Cost Calculator</h3>
+          <p class="sub">Estimated replacement cost if this employee leaves. Based on SHRM industry guidelines.</p>
+
+          <div class="cost-grid">
+            <div class="cost-stat">
+              <div class="cost-label">Annual Salary</div>
+              <div class="cost-val" id="costAnnual">—</div>
+            </div>
+            <div class="cost-stat">
+              <div class="cost-label">Cost Multiplier</div>
+              <div class="cost-val" id="costMult">—</div>
+            </div>
+          </div>
+
+          <div class="cost-total">
+            <div class="label">Total Replacement Cost</div>
+            <div class="value" id="costTotal">—</div>
+          </div>
+
+          <div class="cost-breakdown" id="costBreakdown"></div>
+
+          <p style="font-size:11px; color:var(--text-3); margin-top:12px" id="costNote"></p>
+        </div>
+      </div>
+
+      <!-- Module 8 — Download Report -->
+      <div class="result-card section-card" id="dlCard">
+        <div id="dl-section">
+          <h3>📄 Download Report</h3>
+          <p class="sub">Export a full PDF report — employee profile, prediction, SHAP analysis, recommendations, and cost estimate.</p>
+          <button class="btn-download" id="dlBtn" onclick="downloadReport()">
+            ⬇️ Download PDF Report
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /results-col -->
+  </div><!-- /predict-layout -->
+</main>
+
+
+<script>
+/* ══════════════════════════════════════
+   Global state — stores results for PDF
+══════════════════════════════════════ */
+let STATE = {
+  formData    : null,
+  prediction  : null,
+  shapResult  : null,
+  recs        : null,
+  cost        : null,
+};
+
+let shapChartInstance = null;   // Chart.js instance (destroyed on re-predict)
+let fiChartInstance   = null;
+
+/* ══════════════════════════════════════
+   Helpers
+══════════════════════════════════════ */
+function fmt(n) {
+  // Format number as Indian locale (₹1,23,456)
+  return Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+}
+
+function showCard(id, delay = 0) {
+  // Reveal a result card with staggered animation
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('visible');
+  setTimeout(() => el.classList.add('shown'), delay + 30);
+}
+
+function collectForm() {
+  return {
+    age                     : document.getElementById('f_age').value,
+    gender                  : document.getElementById('f_gender').value,
+    department              : document.getElementById('f_department').value,
+    job_role                : document.getElementById('f_job_role').value,
+    monthly_income          : document.getElementById('f_income').value,
+    overtime                : document.getElementById('f_overtime').value,
+    job_satisfaction        : document.getElementById('f_job_sat').value,
+    environment_satisfaction: document.getElementById('f_env_sat').value,
+    work_life_balance       : document.getElementById('f_wlb').value,
+    years_at_company        : document.getElementById('f_years').value,
+    distance_from_home      : document.getElementById('f_distance').value,
+  };
+}
+
+/* ══════════════════════════════════════
+   Module 3 — Run prediction pipeline
+══════════════════════════════════════ */
+async function runPrediction() {
+  const btn = document.getElementById('predictBtn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btnText');
+
+  // Loading state
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  btnText.textContent = 'Predicting…';
+
+  STATE.formData = collectForm();
+
+  try {
+    /* ── Step A: Predict ── */
+    const predRes  = await fetch('/api/predict', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(STATE.formData)
+    });
+    STATE.prediction = await predRes.json();
+    renderPrediction(STATE.prediction);
+    showCard('resultCard', 0);
+
+    /* ── Step B: SHAP Explanation ── */
+    const shapRes  = await fetch('/api/explain', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(STATE.formData)
+    });
+    const shapJson = await shapRes.json();
+    STATE.shapResult = shapJson.result;
+    renderSHAP(STATE.shapResult);
+    showCard('shapCard', 100);
+
+    /* ── Step C: Recommendations ── */
+    const recRes = await fetch('/api/recommend', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ shap_values: STATE.shapResult.shap_values })
+    });
+    const recJson = await recRes.json();
+    STATE.recs = recJson.recommendations;
+    renderRecommendations(STATE.recs);
+    showCard('recCard', 200);
+
+    /* ── Step D: Cost Calculator ── */
+    const costRes = await fetch('/api/cost-calculator', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        monthly_income: STATE.formData.monthly_income,
+        job_level: 2   // default; form doesn't collect job_level
+      })
+    });
+    STATE.cost = await costRes.json();
+    renderCost(STATE.cost);
+    showCard('costCard', 300);
+
+    /* ── Step E: Reveal download button ── */
+    showCard('dlCard', 400);
+
+  } catch(err) {
+    console.error('Prediction error:', err);
+    alert('Something went wrong. Check that app.py is running.');
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    btnText.textContent = '🔮 Predict Again';
+  }
+}
+
+/* ══════════════════════════════════════
+   Render: Prediction result card
+══════════════════════════════════════ */
+function renderPrediction(p) {
+  const isLeave = p.label === 'Leave';
+
+  document.getElementById('predLabel').textContent = p.label;
+  document.getElementById('predLabel').className   = 'pred-label ' + (isLeave ? 'pred-leave' : 'pred-stay');
+  document.getElementById('probPct').textContent   = p.probability + '%';
+
+  const bar = document.getElementById('probBar');
+  bar.style.width = p.probability + '%';
+  bar.className   = 'prob-bar' + (isLeave ? '' : ' stay');
+
+  const badge = document.getElementById('riskBadge');
+  badge.textContent = p.risk_level + ' Risk';
+  badge.className   = 'risk-badge risk-' + p.risk_level.toLowerCase();
+}
+
+/* ══════════════════════════════════════
+   Render: SHAP chart (Module 4)
+══════════════════════════════════════ */
+function renderSHAP(result) {
+  if (shapChartInstance) { shapChartInstance.destroy(); }
+
+  const vals   = result.shap_values;
+  const labels = vals.map(v => v.label);
+  const data   = vals.map(v => v.shap_value);
+  const colors = data.map(v =>
+    v > 0 ? 'rgba(244,63,94,.85)' : 'rgba(16,185,129,.85)'
+  );
+
+  shapChartInstance = new Chart(document.getElementById('shapChart'), {
+    type : 'bar',
+    data : {
+      labels,
+      datasets: [{
+        data, backgroundColor: colors,
+        borderRadius: 6, borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor:'#1A2740', borderColor:'#1F3050', borderWidth:1,
+          titleColor:'#F1F5F9', bodyColor:'#94A3B8', padding:10,
+          callbacks: {
+            label: ctx => {
+              const dir = ctx.parsed.x > 0 ? ' ▲ increases risk' : ' ▼ decreases risk';
+              return ` ${ctx.parsed.x.toFixed(4)}${dir}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid:{color:'rgba(31,48,80,.8)'}, ticks:{color:'#94A3B8'} },
+        y: { grid:{color:'transparent'},        ticks:{color:'#94A3B8'} }
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════════════
+   Render: Recommendations (Module 6)
+══════════════════════════════════════ */
+function renderRecommendations(recs) {
+  const list = document.getElementById('recList');
+  if (!recs || recs.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No critical risk factors found.</p></div>';
+    return;
+  }
+  list.innerHTML = recs.map(r => `
+    <div class="rec-item">
+      <div class="rec-feature">${r.feature}</div>
+      <div class="rec-title">${r.title}</div>
+      <div class="rec-detail">${r.detail}</div>
+    </div>
+  `).join('');
+}
+
+/* ══════════════════════════════════════
+   Render: Cost Calculator (Module 7)
+══════════════════════════════════════ */
+function renderCost(c) {
+  document.getElementById('costAnnual').textContent = '₹' + fmt(c.annual_salary);
+  document.getElementById('costMult').textContent   = c.multiplier + '×';
+  document.getElementById('costTotal').textContent  = '₹' + fmt(c.replacement_cost);
+  document.getElementById('costNote').textContent   = c.note;
+
+  const bd    = c.breakdown;
+  const total = c.replacement_cost;
+  const items = [
+    { label:'Recruitment & Hiring',  key:'recruitment' },
+    { label:'Onboarding & Training', key:'onboarding' },
+    { label:'Lost Productivity',     key:'productivity' },
+    { label:'Overtime Coverage',     key:'overtime_cover' },
+  ];
+  document.getElementById('costBreakdown').innerHTML = items.map(i => `
+    <div class="cb-row">
+      <span class="cb-label">${i.label}</span>
+      <span class="cb-val">₹${fmt(bd[i.key])}</span>
+    </div>
+    <div class="cb-bar-wrap">
+      <div class="cb-bar" style="width:${(bd[i.key]/total*100).toFixed(1)}%"></div>
+    </div>
+  `).join('');
+}
+
+/* ══════════════════════════════════════
+   Module 5 — Feature Importance (on load)
+══════════════════════════════════════ */
+async function loadFeatureImportance() {
+  const res  = await fetch('/api/feature-importance');
+  const json = await res.json();
+  const data = json.data;
+
+  const labels = data.map(d => d.label);
+  const values = data.map(d => d.importance);
+  const colors = values.map((_, i) => {
+    const alpha = 0.9 - (i / values.length) * 0.45;
+    return `rgba(99,102,241,${alpha.toFixed(2)})`;
+  });
+
+  fiChartInstance = new Chart(document.getElementById('fiChart'), {
+    type : 'bar',
+    data : { labels, datasets:[{ data:values, backgroundColor:colors, borderRadius:5, borderSkipped:false }] },
+    options: {
+      responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins: {
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#1A2740', borderColor:'#1F3050', borderWidth:1,
+          titleColor:'#F1F5F9', bodyColor:'#94A3B8', padding:10,
+          callbacks:{ label: ctx => ` Importance: ${ctx.parsed.x.toFixed(4)}` }
+        }
+      },
+      scales:{
+        x:{ grid:{color:'rgba(31,48,80,.8)'}, ticks:{color:'#94A3B8'} },
+        y:{ grid:{color:'transparent'},        ticks:{color:'#94A3B8'} }
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════════════
+   Module 8 — Download PDF Report
+══════════════════════════════════════ */
+async function downloadReport() {
+  if (!STATE.prediction) {
+    alert('Please run a prediction first.');
+    return;
+  }
+
+  const btn = document.getElementById('dlBtn');
+  btn.textContent = '⏳ Generating PDF…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/download-report', {
+      method  : 'POST',
+      headers : { 'Content-Type': 'application/json' },
+      body    : JSON.stringify({
+        form_data       : STATE.formData,
+        prediction      : STATE.prediction,
+        shap_result     : STATE.shapResult,
+        recommendations : STATE.recs,
+        cost            : STATE.cost,
+      })
+    });
+
+    // Trigger browser file download
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'attrition_report.pdf';
+    a.click();
+    URL.revokeObjectURL(url);
+
+  } catch(err) {
+    alert('PDF generation failed: ' + err.message);
+  } finally {
+    btn.textContent = '⬇️ Download PDF Report';
+    btn.disabled    = false;
+  }
+}
+
+/* ══════════════════════════════════════
+   Bootstrap
+══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  loadFeatureImportance();   // Module 5 loads immediately — needs no form input
+});
+</script>
+
+</body>
+</html>
