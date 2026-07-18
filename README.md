@@ -1,3 +1,4 @@
+
 # 🧠 Employee Attrition Prediction
 
 An end-to-end machine learning web application that predicts whether an employee
@@ -221,14 +222,7 @@ web: gunicorn app:app
 
 ---
 
-## 👤 Author
 
-**Roshan**
-B.Tech Computer Science — NIT Silchar
-[GitHub](https://github.com/<your-username>) · [LinkedIn](https://linkedin.com/in/<your-profile>)
 
 ---
 
-## 📄 License
-
-MIT License — free to use, modify, and distribute.
