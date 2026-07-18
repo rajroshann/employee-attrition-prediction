@@ -13,9 +13,7 @@ Built on the [IBM HR Analytics Employee Attrition Dataset](https://www.kaggle.co
 
 ---
 
-## 📸 Screenshots
 
-> _Add screenshots of your dashboard and prediction page here_
 
 ---
 
@@ -73,7 +71,7 @@ employee-attrition-prediction/
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/<your-username>/employee-attrition-prediction.git
+git clone https://github.com/<rajroshan>/employee-attrition-prediction.git
 cd employee-attrition-prediction
 ```
 
@@ -103,12 +101,8 @@ data/HR-Employee-Attrition.csv
 ### 5. Train the model _(run once)_
 ```bash
 python train_model.py
-```
-This generates all artifacts in `models/` and `reports/`.
-You should see output ending with:
-```
-Training complete. All artifacts saved.
-You can now run: python app.py
+
+
 ```
 
 ### 6. Start the app
@@ -197,8 +191,7 @@ web: gunicorn app:app
 - Build command: `pip install -r requirements.txt && python train_model.py`
 - Start command: `gunicorn app:app`
 
-> ⚠️ The `data/` folder and `models/` folder must be included in the repo
-> (or the build command must generate them). Do not add `*.pkl` to `.gitignore`.
+
 
 ---
 
