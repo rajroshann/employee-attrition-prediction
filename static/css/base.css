@@ -1,0 +1,263 @@
+/* =============================================
+   base.css — shared across dashboard + predict
+   Includes: tokens, reset, sidebar, animations
+   ============================================= */
+
+/* ── Design tokens ── */
+:root {
+  --bg-base   : #0B1120;
+  --bg-card   : #131E30;
+  --bg-card2  : #1A2740;
+  --border    : #1F3050;
+  --indigo    : #6366F1;
+  --indigo-dim: #4338CA;
+  --emerald   : #10B981;
+  --rose      : #F43F5E;
+  --amber     : #F59E0B;
+  --cyan      : #06B6D4;
+  --purple    : #A855F7;
+  --text-1    : #F1F5F9;
+  --text-2    : #94A3B8;
+  --text-3    : #475569;
+  --radius    : 14px;
+  --radius-sm : 8px;
+  --sidebar-w : 220px;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family    : 'Inter', system-ui, sans-serif;
+  background     : var(--bg-base);
+  color          : var(--text-1);
+  min-height     : 100vh;
+  display        : flex;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ── Animations ── */
+@keyframes pulse   { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+@keyframes shimmer { 0%{background-position:100% 50%} 100%{background-position:0% 50%} }
+@keyframes spin    { to { transform: rotate(360deg); } }
+@keyframes fadeUp  {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Skeleton loader ── */
+.skeleton {
+  background     : linear-gradient(90deg, var(--bg-card2) 25%, var(--border) 50%, var(--bg-card2) 75%);
+  background-size: 400% 100%;
+  animation      : shimmer 1.5s infinite;
+  border-radius  : 6px;
+}
+
+/* ── Section divider title ── */
+.section-title {
+  font-size     : 11px;
+  font-weight   : 700;
+  color         : var(--text-3);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom : 16px;
+  display       : flex;
+  align-items   : center;
+  gap           : 10px;
+}
+.section-title::after {
+  content   : '';
+  flex      : 1;
+  height    : 1px;
+  background: var(--border);
+}
+
+/* ── Hamburger button (mobile only) ── */
+.hamburger {
+  display        : none;
+  position       : fixed;
+  top            : 16px;
+  left           : 16px;
+  z-index        : 200;
+  background     : var(--bg-card);
+  border         : 1px solid var(--border);
+  border-radius  : var(--radius-sm);
+  padding        : 8px 10px;
+  cursor         : pointer;
+  flex-direction : column;
+  gap            : 4px;
+}
+.hamburger span {
+  display      : block;
+  width        : 20px;
+  height       : 2px;
+  background   : var(--text-1);
+  border-radius: 2px;
+  transition   : all .25s;
+}
+
+/* ── Mobile overlay behind sidebar ── */
+.sidebar-overlay {
+  display   : none;
+  position  : fixed;
+  inset     : 0;
+  background: rgba(0,0,0,.6);
+  z-index   : 99;
+}
+.sidebar-overlay.active { display: block; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width          : var(--sidebar-w);
+  min-height     : 100vh;
+  background     : var(--bg-card);
+  border-right   : 1px solid var(--border);
+  display        : flex;
+  flex-direction : column;
+  padding        : 28px 0;
+  position       : fixed;
+  top            : 0;
+  left           : 0;
+  z-index        : 100;
+  transition     : transform .3s ease;
+}
+
+.sidebar-logo {
+  padding      : 0 24px 28px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo .logo-icon {
+  width          : 36px;
+  height         : 36px;
+  background     : var(--indigo);
+  border-radius  : 10px;
+  display        : flex;
+  align-items    : center;
+  justify-content: center;
+  font-size      : 18px;
+  margin-bottom  : 10px;
+}
+.sidebar-logo h1 { font-size: 14px; font-weight: 700; letter-spacing: .02em; }
+.sidebar-logo p  { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+.sidebar-nav {
+  padding       : 20px 12px;
+  display       : flex;
+  flex-direction: column;
+  gap           : 4px;
+  flex          : 1;
+  overflow-y    : auto;
+}
+
+.nav-label {
+  font-size     : 10px;
+  font-weight   : 600;
+  color         : var(--text-3);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding       : 10px 12px 6px;
+}
+
+.nav-link {
+  display        : flex;
+  align-items    : center;
+  gap            : 10px;
+  padding        : 10px 14px;
+  border-radius  : var(--radius-sm);
+  text-decoration: none;
+  color          : var(--text-2);
+  font-size      : 13.5px;
+  font-weight    : 500;
+  transition     : all .15s;
+}
+.nav-link:hover  { background: var(--bg-card2); color: var(--text-1); }
+.nav-link.active { background: rgba(99,102,241,.15); color: var(--indigo); }
+.nav-link .icon  { font-size: 16px; width: 20px; text-align: center; }
+
+/* ── Main content area ── */
+.main {
+  margin-left: var(--sidebar-w);
+  flex       : 1;
+  padding    : 32px 36px;
+  max-width  : calc(100vw - var(--sidebar-w));
+  min-width  : 0;
+}
+
+/* ── Page header ── */
+.page-header {
+  display        : flex;
+  align-items    : center;
+  justify-content: space-between;
+  margin-bottom  : 32px;
+  gap            : 16px;
+  flex-wrap      : wrap;
+}
+.page-header h2 { font-size: 22px; font-weight: 700; }
+.page-header p  { font-size: 13px; color: var(--text-2); margin-top: 3px; }
+
+/* ── Live badge ── */
+.live-badge {
+  display      : flex;
+  align-items  : center;
+  gap          : 7px;
+  background   : rgba(16,185,129,.1);
+  border       : 1px solid rgba(16,185,129,.25);
+  border-radius: 20px;
+  padding      : 6px 14px;
+  font-size    : 12px;
+  color        : var(--emerald);
+  font-weight  : 600;
+  white-space  : nowrap;
+}
+.live-dot {
+  width        : 7px;
+  height       : 7px;
+  background   : var(--emerald);
+  border-radius: 50%;
+  animation    : pulse 2s infinite;
+}
+
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+
+/* ── Tablet (≤ 1024px) ── */
+@media (max-width: 1024px) {
+  .main {
+    padding: 24px 24px;
+  }
+}
+
+/* ── Mobile (≤ 768px) ── */
+@media (max-width: 768px) {
+  /* Show hamburger, hide sidebar by default */
+  .hamburger { display: flex; }
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Main takes full width */
+  .main {
+    margin-left: 0;
+    max-width  : 100vw;
+    padding    : 64px 16px 24px; /* top padding for hamburger */
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items   : flex-start;
+    margin-bottom : 20px;
+  }
+  .page-header h2 { font-size: 18px; }
+
+  .section-title { font-size: 10px; }
+}

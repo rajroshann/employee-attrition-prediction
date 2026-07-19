@@ -46,17 +46,25 @@ app = Flask(__name__)
 # These are loaded once when the server starts, not on every request.
 # Keeps response times fast.
 
-pipeline         = joblib.load("models/model.pkl")
-feature_defaults = json.load(open("models/feature_defaults.json"))
-dashboard_stats  = json.load(open("reports/dashboard_stats.json"))
-model_metrics    = json.load(open("reports/model_metrics.json"))
+# FIXED — always resolves relative to app.py location 
+
+# CODE CHANGE HERE AFTER SOME TIME OR IN SECOAND 
+BASE_DIR         = os.path.dirname(os.path.abspath(__file__))
+pipeline         = joblib.load(os.path.join(BASE_DIR, "models", "model.pkl"))
+feature_defaults = json.load(open(os.path.join(BASE_DIR, "models", "feature_defaults.json")))
+dashboard_stats  = json.load(open(os.path.join(BASE_DIR, "reports", "dashboard_stats.json")))
+model_metrics    = json.load(open(os.path.join(BASE_DIR, "reports", "model_metrics.json")))
+RAW_DATA_PATH    = os.path.join(BASE_DIR, "data", "HR-Employee-Attrition.csv")
 
 
 #RAW_DATA_PATH    = "data/HR-Employee-Attrition.csv"
 
-import os
-BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
-RAW_DATA_PATH = os.path.join(BASE_DIR, "data", "HR-Employee-Attrition.csv")
+# import os
+# BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
+# RAW_DATA_PATH = os.path.join(BASE_DIR, "data", "HR-Employee-Attrition.csv")
+
+
+
 
 
 # Education and WorkLifeBalance use numeric codes in the dataset.
@@ -76,11 +84,11 @@ WORKLIFE_MAP = {
     4: "Best"
 }
 
+
+# 
+# Remove this — nothing reads it-----modify it after folder modification
 SATISFACTION_MAP = {
-    1: "Low",
-    2: "Medium",
-    3: "High",
-    4: "Very High"
+    1: "Low", 2: "Medium", 3: "High", 4: "Very High"
 }
 
 

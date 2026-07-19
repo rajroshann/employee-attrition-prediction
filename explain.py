@@ -23,9 +23,16 @@ import pandas as pd
 # This is important: loading a 1.3MB pkl on every request would
 # make your app slow. Load once, reuse forever.
 
-pipeline         = joblib.load("models/model.pkl")
-explainer        = joblib.load("models/shap_explainer.pkl")
-feature_names    = json.load(open("models/feature_names.json"))
+# pipeline         = joblib.load("models/model.pkl")
+# explainer        = joblib.load("models/shap_explainer.pkl")
+# feature_names    = json.load(open("models/feature_names.json"))
+
+# FIXED ----------------after modifying the folder structure
+import os 
+BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
+pipeline      = joblib.load(os.path.join(BASE_DIR, "models", "model.pkl"))
+explainer     = joblib.load(os.path.join(BASE_DIR, "models", "shap_explainer.pkl"))
+feature_names = json.load(open(os.path.join(BASE_DIR, "models", "feature_names.json")))
 
 preprocessor     = pipeline.named_steps['preprocessor']
 model            = pipeline.named_steps['model']

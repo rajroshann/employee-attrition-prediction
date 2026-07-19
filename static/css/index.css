@@ -1,0 +1,316 @@
+/* =============================================
+   index.css — Modules 3–8 (Prediction page)
+   Depends on: base.css
+   ============================================= */
+
+/* ── Two-column predict layout ── */
+.predict-layout {
+  display              : grid;
+  grid-template-columns: 400px 1fr;
+  gap                  : 24px;
+  align-items          : start;
+}
+
+/* ── Form card ── */
+.form-card {
+  background   : var(--bg-card);
+  border       : 1px solid var(--border);
+  border-radius: var(--radius);
+  padding      : 28px;
+  position     : sticky;
+  top          : 28px;
+}
+.form-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.form-card > p { font-size: 12px; color: var(--text-2); margin-bottom: 24px; }
+
+/* ── Form grid ── */
+.form-grid {
+  display              : grid;
+  grid-template-columns: 1fr 1fr;
+  gap                  : 14px;
+}
+.form-group      { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: span 2; }
+
+label {
+  font-size     : 11px;
+  font-weight   : 600;
+  color         : var(--text-2);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+input, select {
+  background   : var(--bg-card2);
+  border       : 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color        : var(--text-1);
+  font-size    : 13px;
+  padding      : 10px 12px;
+  width        : 100%;
+  transition   : border-color .15s;
+  outline      : none;
+  font-family  : inherit;
+}
+input:focus, select:focus { border-color: var(--indigo); }
+select option             { background: var(--bg-card2); }
+
+/* ── Slider inputs ── */
+.slider-group { display: flex; flex-direction: column; gap: 6px; }
+.slider-row   { display: flex; align-items: center; gap: 10px; }
+
+input[type=range] {
+  flex        : 1;
+  height      : 4px;
+  appearance  : none;
+  background  : var(--border);
+  border-radius: 4px;
+  padding     : 0;
+  border      : none;
+  cursor      : pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  appearance   : none;
+  width        : 16px;
+  height       : 16px;
+  background   : var(--indigo);
+  border-radius: 50%;
+  cursor       : pointer;
+}
+.slider-val {
+  font-size  : 13px;
+  font-weight: 700;
+  color      : var(--indigo);
+  width      : 24px;
+  text-align : center;
+}
+.slider-labels {
+  display        : flex;
+  justify-content: space-between;
+  font-size      : 9px;
+  color          : var(--text-3);
+  margin-top     : 2px;
+}
+
+/* ── Predict button ── */
+.btn-predict {
+  width          : 100%;
+  margin-top     : 24px;
+  padding        : 14px;
+  background     : var(--indigo);
+  color          : #fff;
+  border         : none;
+  border-radius  : var(--radius-sm);
+  font-size      : 14px;
+  font-weight    : 700;
+  cursor         : pointer;
+  transition     : all .2s;
+  letter-spacing : .02em;
+  display        : flex;
+  align-items    : center;
+  justify-content: center;
+  gap            : 8px;
+  font-family    : inherit;
+}
+.btn-predict:hover    { background: #4F46E5; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(99,102,241,.3); }
+.btn-predict:active   { transform: translateY(0); }
+.btn-predict:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+/* ── Loading spinner ── */
+.spinner {
+  width       : 16px;
+  height      : 16px;
+  border      : 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation   : spin .7s linear infinite;
+  display     : none;
+}
+
+/* ── Results column ── */
+.results-col { display: flex; flex-direction: column; gap: 20px; }
+
+/* ── Result card (hidden until prediction) ── */
+.result-card {
+  background   : var(--bg-card);
+  border       : 1px solid var(--border);
+  border-radius: var(--radius);
+  padding      : 24px;
+  display      : none;
+  opacity      : 0;
+  transform    : translateY(12px);
+  transition   : all .4s ease;
+}
+.result-card.visible { display: block; }
+.result-card.shown   { opacity: 1; transform: translateY(0); }
+
+/* ── Prediction result display ── */
+.result-header {
+  display        : flex;
+  align-items    : center;
+  justify-content: space-between;
+  margin-bottom  : 20px;
+  flex-wrap      : wrap;
+  gap            : 10px;
+}
+.result-header h3 {
+  font-size     : 14px;
+  font-weight   : 700;
+  color         : var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.risk-badge   { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.risk-low     { background: rgba(16,185,129,.15); color: var(--emerald); border: 1px solid rgba(16,185,129,.3); }
+.risk-medium  { background: rgba(245,158,11,.15); color: var(--amber);   border: 1px solid rgba(245,158,11,.3); }
+.risk-high    { background: rgba(244,63,94,.15);  color: var(--rose);    border: 1px solid rgba(244,63,94,.3);  }
+
+.prediction-big { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.pred-label     { font-size: 42px; font-weight: 900; line-height: 1; letter-spacing: -.03em; }
+.pred-stay      { color: var(--emerald); }
+.pred-leave     { color: var(--rose); }
+
+.prob-section { flex: 1; min-width: 140px; }
+.prob-pct     { font-size: 28px; font-weight: 800; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.prob-label   { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+.prob-bar-wrap { margin-top: 12px; height: 8px; background: var(--border); border-radius: 8px; overflow: hidden; }
+.prob-bar      { height: 100%; border-radius: 8px; transition: width 1s ease; background: var(--rose); }
+.prob-bar.stay { background: var(--emerald); }
+
+/* ── Generic section card ── */
+.section-card {
+  background   : var(--bg-card);
+  border       : 1px solid var(--border);
+  border-radius: var(--radius);
+  padding      : 24px;
+}
+.section-card h3  { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.section-card .sub { font-size: 12px; color: var(--text-2); margin-bottom: 18px; line-height: 1.6; }
+
+/* ── Chart wrappers ── */
+.shap-chart-wrap { position: relative; height: 220px; }
+.fi-chart-wrap   { position: relative; height: 320px; }
+
+/* ── Recommendations ── */
+.rec-list { display: flex; flex-direction: column; gap: 12px; }
+.rec-item {
+  background   : var(--bg-card2);
+  border       : 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding      : 14px 16px;
+  border-left  : 3px solid var(--amber);
+}
+.rec-item .rec-feature { font-size: 10px; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.rec-item .rec-title   { font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 4px; }
+.rec-item .rec-detail  { font-size: 12px; color: var(--text-2); line-height: 1.6; }
+
+/* ── Cost calculator ── */
+.cost-grid {
+  display              : grid;
+  grid-template-columns: 1fr 1fr;
+  gap                  : 12px;
+  margin-bottom        : 16px;
+}
+.cost-stat { background: var(--bg-card2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; }
+.cost-stat .cost-label { font-size: 10px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+.cost-stat .cost-val   { font-size: 20px; font-weight: 800; color: var(--text-1); font-variant-numeric: tabular-nums; }
+
+.cost-total {
+  background     : rgba(244,63,94,.08);
+  border         : 1px solid rgba(244,63,94,.25);
+  border-radius  : var(--radius-sm);
+  padding        : 16px;
+  display        : flex;
+  align-items    : center;
+  justify-content: space-between;
+  flex-wrap      : wrap;
+  gap            : 8px;
+}
+.cost-total .label { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.cost-total .value { font-size: 24px; font-weight: 900; color: var(--rose); font-variant-numeric: tabular-nums; }
+
+.cost-breakdown { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.cb-row         { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+.cb-row .cb-label { color: var(--text-2); }
+.cb-row .cb-val   { color: var(--text-1); font-weight: 600; font-variant-numeric: tabular-nums; }
+.cb-bar-wrap      { height: 3px; background: var(--border); border-radius: 3px; margin-top: 3px; overflow: hidden; }
+.cb-bar           { height: 100%; background: var(--rose); border-radius: 3px; transition: width .8s ease; opacity: .6; }
+
+/* ── Download button ── */
+.btn-download {
+  width          : 100%;
+  padding        : 14px;
+  background     : transparent;
+  color          : var(--text-1);
+  border         : 1px solid var(--border);
+  border-radius  : var(--radius-sm);
+  font-size      : 14px;
+  font-weight    : 600;
+  cursor         : pointer;
+  transition     : all .2s;
+  display        : flex;
+  align-items    : center;
+  justify-content: center;
+  gap            : 8px;
+  font-family    : inherit;
+}
+.btn-download:hover { border-color: var(--indigo); color: var(--indigo); background: rgba(99,102,241,.06); }
+
+/* ── Empty state ── */
+.empty-state      { text-align: center; padding: 32px 16px; color: var(--text-3); }
+.empty-state .icon { font-size: 32px; margin-bottom: 10px; }
+.empty-state p    { font-size: 13px; }
+
+
+/* ============================================
+   RESPONSIVE — predict page
+   ============================================ */
+
+/* ── Tablet (≤ 1024px) ── */
+@media (max-width: 1024px) {
+  .predict-layout {
+    grid-template-columns: 340px 1fr;
+    gap                  : 18px;
+  }
+  .form-card { padding: 20px; }
+}
+
+/* ── Small tablet / large mobile (≤ 860px) ── */
+@media (max-width: 860px) {
+  /* Stack form above results */
+  .predict-layout {
+    grid-template-columns: 1fr;
+  }
+  /* Form is no longer sticky when stacked */
+  .form-card { position: static; }
+}
+
+/* ── Mobile (≤ 768px) ── */
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  /* All form fields go full width */
+  .form-group.full { grid-column: span 1; }
+
+  .pred-label  { font-size: 32px; }
+  .prob-pct    { font-size: 22px; }
+
+  .cost-grid   { grid-template-columns: 1fr; }
+  .cost-stat .cost-val { font-size: 18px; }
+  .cost-total .value   { font-size: 20px; }
+
+  .shap-chart-wrap { height: 180px; }
+  .fi-chart-wrap   { height: 260px; }
+
+  .section-card { padding: 18px; }
+  .result-card  { padding: 18px; }
+}
+
+/* ── Small mobile (≤ 400px) ── */
+@media (max-width: 400px) {
+  .prediction-big { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .pred-label     { font-size: 28px; }
+}
